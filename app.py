@@ -123,6 +123,66 @@ with app.app_context():
 
 @app.route('/')
 def index():
+    return '''
+    <!doctype html>
+    <html lang="zh-Hant">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>萬能的鑰匙後端</title>
+        <style>
+          body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            background: #f4efe3;
+            color: #24313d;
+            font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+          }
+          main {
+            width: min(720px, calc(100% - 32px));
+            background: white;
+            border: 1px solid #d9e0e5;
+            border-radius: 10px;
+            box-shadow: 0 12px 30px rgba(35, 46, 57, 0.08);
+            padding: 28px;
+          }
+          h1 { margin: 0 0 10px; color: #386f8f; }
+          p { line-height: 1.7; }
+          a {
+            display: inline-block;
+            margin: 8px 8px 0 0;
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: #386f8f;
+            color: white;
+            font-weight: 700;
+            text-decoration: none;
+          }
+          code {
+            background: #eef3f5;
+            border-radius: 6px;
+            padding: 2px 6px;
+          }
+        </style>
+      </head>
+      <body>
+        <main>
+          <h1>後端已啟動</h1>
+          <p>這個 Render 網址是用來儲存玩家結果與查看管理後台的，不是主要分享給玩家玩的前端網址。</p>
+          <p>玩家遊戲頁請使用 GitHub Pages。GitHub Pages 的前端會把資料送回這個後端。</p>
+          <a href="/admin">進入後台</a>
+          <a href="/api/health">檢查連線</a>
+          <a href="/play">本機/備用遊戲頁</a>
+          <p>如果免費 Render 服務剛醒來，第一次載入可能會等 30 秒到 1 分鐘；醒來後會比較快。</p>
+        </main>
+      </body>
+    </html>
+    '''
+
+@app.route('/play')
+def play():
     return render_template('index.html')
 
 @app.route('/admin')

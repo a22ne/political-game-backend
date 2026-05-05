@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>萬能的鑰匙 - 後端管理</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #386f8f;
+            --bg: #f4efe3;
+            --card: #ffffff;
+            --ink: #24313d;
+            --muted: #637383;
+            --line: #d9e0e5;
+            --green: #3f7a5f;
+            --red: #b75050;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 24px;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            max-width: 1400px;
+            margin: 0 auto 20px;
+        }
+        h1, h2, h3, p { margin-top: 0; }
+        h1 { margin-bottom: 4px; }
+        h2 { color: var(--primary); font-size: 1.2rem; }
+        .subtle { color: var(--muted); margin-bottom: 0; }
+        .btn {
+            display: inline-block;
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 16px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .card {
+            grid-column: span 6;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            box-shadow: 0 10px 28px rgba(35, 46, 57, 0.08);
+            padding: 18px;
+        }
+        .full { grid-column: 1 / -1; }
+        .third { grid-column: span 4; }
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        .stat-box {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 14px;
+            background: #f8fafb;
+        }
+        .stat-box strong { display: block; font-size: 1.8rem; color: var(--primary); }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.92rem;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--line);
+            vertical-align: top;
+        }
+        th { background: #f7f9fa; color: #354655; }
+        .pill {
+            display: inline-block;
+            border-radius: 999px;
+            padding: 3px 8px;
+            background: #edf4f6;
+            color: var(--primary);
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+        .branch {
+            margin-top: 10px;
+            border-left: 4px solid var(--primary);
+            background: #f7fafb;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .branch b { color: var(--primary); }
+        .effects {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .effects span {
+            border-radius: 6px;
+            padding: 3px 7px;
+            background: #eef2f4;
+            font-size: 0.78rem;
+        }
+        .up { color: var(--green); }
+        .down { color: var(--red); }
+        .empty {
+            color: var(--muted);
+            padding: 16px 0;
+        }
+        @media (max-width: 900px) {
+            body { padding: 14px; }
+            .header { align-items: flex-start; flex-direction: column; }
+            .card, .third { grid-column: 1 / -1; }
+            .stat-row { grid-template-columns: 1fr; }
+            table { display: block; overflow-x: auto; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>後端管理台</h1>
+            <p class="subtle" id="connection-status">正在確認前端與後端連線...</p>
+        </div>
+        <a href="/" class="btn">回到遊戲</a>
+    </div>
+
+    <main class="grid">
+        <section class="card full">
+            <h2>連線與資料狀態</h2>
+            <div class="stat-row">
+                <div class="stat-box"><strong id="count-characters">-</strong><span>角色</span></div>
+                <div class="stat-box"><strong id="count-events">-</strong><span>事件與新聞</span></div>
+                <div class="stat-box"><strong id="count-logs">-</strong><span>玩家完成紀錄</span></div>
+            </div>
+        </section>
+
+        <section class="card full">
+            <h2>玩家結果紀錄</h2>
+            <p class="subtle">玩家完成遊戲後，前端會送出最後數值，這裡每 5 秒自動刷新。</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>時間</th>
+                        <th>玩家</th>
+                        <th>角色</th>
+                        <th>結局</th>
+                        <th>自由平權</th>
+                        <th>社會秩序</th>
+                        <th>進步主義</th>
+                        <th>民粹激進</th>
+                    </tr>
+                </thead>
+                <tbody id="logs-table"></tbody>
+            </table>
+            <div id="logs-empty" class="empty" hidden>目前還沒有玩家完成紀錄。</div>
+        </section>
+
+        <section class="card">
+            <h2>所有可能結局</h2>
+            <div id="ending-rules"></div>
+        </section>
+
+        <section class="card">
+            <h2>結局統計</h2>
+            <table>
+                <thead><tr><th>結局</th><th>累積次數</th></tr></thead>
+                <tbody id="ending-counts"></tbody>
+            </table>
+        </section>
+
+        <section class="card full">
+            <h2>所有可能劇情走向</h2>
+            <p class="subtle">以下列出每個事件、指定角色、A/B 分支、數值影響與說服分支。</p>
+            <div id="events-list"></div>
+        </section>
+    </main>
+
+    <script>
+        const API_BASE = window.API_BASE_URL || "";
+        const api = (path, options) => fetch(`${API_BASE}${path}`, options);
+        const statLabels = {
+            freedom: "自由",
+            order: "秩序",
+            progress: "進步",
+            populism: "民粹"
+        };
+
+        function effectTags(effects) {
+            return Object.entries(effects)
+                .map(([key, value]) => {
+                    const cls = value >= 0 ? "up" : "down";
+                    const sign = value > 0 ? "+" : "";
+                    return `<span class="${cls}">${statLabels[key]} ${sign}${value}</span>`;
+                })
+                .join("");
+        }
+
+        async function refreshHealth() {
+            const res = await api("/api/health");
+            const data = await res.json();
+            document.getElementById("connection-status").textContent =
+                `已連接後端與資料庫，上次確認：${new Date(data.time).toLocaleString()}`;
+            document.getElementById("count-characters").textContent = data.characters;
+            document.getElementById("count-events").textContent = data.events;
+            document.getElementById("count-logs").textContent = data.logs;
+        }
+
+        async function refreshLogs() {
+            const res = await api("/api/logs");
+            const logs = await res.json();
+            const tbody = document.getElementById("logs-table");
+            const empty = document.getElementById("logs-empty");
+            tbody.innerHTML = "";
+            empty.hidden = logs.length !== 0;
+
+            logs.forEach((log) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${new Date(log.created_at).toLocaleString()}</td>
+                        <td>${log.player_name}</td>
+                        <td>${log.character_name || log.character_id}<br><span class="pill">${log.character_role || ""}</span></td>
+                        <td>${log.ending_name}</td>
+                        <td>${log.final_freedom}</td>
+                        <td>${log.final_order}</td>
+                        <td>${log.final_progress}</td>
+                        <td>${log.final_populism}</td>
+                    </tr>`;
+            });
+        }
+
+        async function loadOverview() {
+            const res = await api("/api/admin/overview");
+            const data = await res.json();
+
+            document.getElementById("ending-rules").innerHTML = data.ending_rules.map((rule) => `
+                <div class="branch">
+                    <b>${rule.name}</b>
+                    <p class="subtle">${rule.condition}</p>
+                    <p>${rule.description}</p>
+                </div>
+            `).join("");
+
+            document.getElementById("ending-counts").innerHTML = data.ending_counts.map((item) => `
+                <tr><td>${item.name}</td><td>${item.count}</td></tr>
+            `).join("");
+
+            document.getElementById("events-list").innerHTML = data.events.map((event) => {
+                const branches = event.branches
+                    .filter((branch) => branch.text)
+                    .map((branch) => `
+                        <div class="branch">
+                            <b>選項 ${branch.id}：${branch.text}</b>
+                            <div class="effects">${effectTags(branch.effects)}</div>
+                            <p>${branch.result_text || "無結果文字"}</p>
+                            ${branch.explanation ? `<p class="subtle">解析：${branch.explanation}</p>` : ""}
+                        </div>
+                    `).join("");
+
+                const persuasion = event.persuasion_config ? `
+                    <div class="branch">
+                        <b>說服分支：${event.persuasion_config.target}</b>
+                        <p>${event.persuasion_config.reason || ""}</p>
+                        <p class="subtle">高說服：${event.persuasion_config.persuasion_high?.text || ""}</p>
+                        <p class="subtle">低說服：${event.persuasion_config.persuasion_low?.text || ""}</p>
+                    </div>
+                ` : "";
+
+                return `
+                    <article class="branch">
+                        <h3>${event.title}</h3>
+                        <span class="pill">${event.is_news ? "新聞事件" : event.target_role}</span>
+                        <p>${event.description}</p>
+                        ${branches}
+                        ${persuasion}
+                    </article>
+                `;
+            }).join("");
+        }
+
+        async function boot() {
+            try {
+                await refreshHealth();
+                await refreshLogs();
+                await loadOverview();
+                setInterval(async () => {
+                    await refreshHealth();
+                    await refreshLogs();
+                }, 5000);
+            } catch (error) {
+                document.getElementById("connection-status").textContent =
+                    "連線失敗：請確認 Flask 後端正在執行。";
+            }
+        }
+
+        boot();
+    </script>
+</body>
+</html>
